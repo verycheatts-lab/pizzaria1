@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Painel da Cozinha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Inicialização do Supabase (deve ser igual à do seu painel)
+        const SUPABASE_URL = 'https://pqoafjslbvfhwbvepuox.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxb2FmanNsYnZmaHdidmVwdW94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NTY5MTYsImV4cCI6MjA3NjAzMjkxNn0.oGIuSfm1BFIB1X079Bb4uz4Pz8z_todLeveO_6AZsHc';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
+    <script src="config.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cor-fundo, #f3f4f6);
+        }
+        :root {
+            --cor-primaria: #D92B2B; /* Cor vermelha da pizzaria */
+            --cor-fundo: #f3f4f6;
+        }
+        .login-btn {
+            background-color: var(--cor-primaria);
+        }
+        .login-btn:hover {
+            filter: brightness(0.9);
+        }
+        .focus-ring:focus {
+            --tw-ring-color: var(--cor-primaria) !important;
+        }
+        #remember-me {
+            accent-color: var(--cor-primaria);
+        }
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">Entrando no sistema...</div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-sm p-8 space-y-6 bg-white rounded-xl shadow-lg">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Acesso ao Painel</h1>
+            <p class="mt-2 text-sm text-gray-600">Use suas credenciais para continuar</p>
+        </div>
+
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="email" class="sr-only">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" required class="w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent focus-ring"
+                       placeholder="Email">
+            </div>
+            <div>
+                <label for="password" class="sr-only">Senha</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required class="w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent focus-ring"
+                       placeholder="Senha">
+            </div>
+
+            <div>
+                <button type="submit" id="login-button" class="w-full px-4 py-3 font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all flex items-center justify-center login-btn"
+                        style="--tw-ring-offset-color: var(--cor-primaria);">
+                    Entrar
+                </button>
+            </div>
+        </form>
+
+        <div class="flex items-center justify-center pt-2">
+            <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-gray-300 focus:ring-2 focus-ring">
+                <label for="remember-me" class="ml-2 block text-sm text-gray-700">Lembrar meu e-mail</label>
+            </div>
+        </div>
+
+        <p id="error-message" class="text-center text-sm text-red-600 hidden mt-2">Email ou senha incorretos.</p>
+    </div>
+
+    <script>
+        // --- INÍCIO: Lógica para carregar cores dinâmicas ---
+        // A função applyMenuColors foi removida para usar a cor marrom fixa.
+        // --- FIM: Lógica para carregar cores dinâmicas ---
+
+        (async () => {
+            try {
+                // Verifica se já existe uma sessão ativa e redireciona
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                // Tratar erro de token inválido
+                if (error) {
+                    if (error.message && (error.message.includes('refresh') || error.message.includes('token'))) {
+                        console.warn('⚠️ Token inválido detectado, limpando sessão...');
+                        await supabase.auth.signOut();
+                        localStorage.clear();
+                    }
+                    return;
+                }
+                
+                if (session) {
+                    window.location.href = 'paineladmin.html';
+                }
+            } catch (err) {
+                console.error('Erro ao verificar sessão:', err);
+            }
+        })();
+        
+        // Capturar erros de refresh token globalmente
+        window.addEventListener('unhandledrejection', (event) => {
+            if (event.reason && event.reason.message && 
+                (event.reason.message.includes('Invalid Refresh Token') || 
+                 event.reason.message.includes('Refresh Token Not Found'))) {
+                console.warn('⚠️ Erro de refresh token detectado, limpando sessão...');
+                event.preventDefault();
+                
+                supabase.auth.signOut().then(() => {
+                    localStorage.clear();
+                });
+            }
+        });
+
+        // Aplica as cores ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Preenche o e-mail se estiver salvo no localStorage
+            const savedEmail = localStorage.getItem('savedEmail');
+            const emailInput = document.getElementById('email');
+            const rememberMeCheckbox = document.getElementById('remember-me');
+
+            if (savedEmail && emailInput && rememberMeCheckbox) {
+                emailInput.value = savedEmail;
+                rememberMeCheckbox.checked = true;
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+            const loginButton = document.getElementById('login-button');
+            const rememberMe = document.getElementById('remember-me').checked;
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            // Desabilita o botão e mostra um spinner
+            loginButton.disabled = true;
+            loginButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Entrando...
+            `;
+            errorMessage.classList.add('hidden');
+            
+            // Mostra o overlay de loading
+            document.getElementById('loading-overlay').classList.add('active');
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                // Remove o overlay de loading
+                document.getElementById('loading-overlay').classList.remove('active');
+                errorMessage.textContent = 'Email ou senha incorretos. Tente novamente.';
+                errorMessage.classList.remove('hidden');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Entrar';
+            } else {
+                // VALIDAÇÃO: Verificar se o usuário é administrador
+                console.log(' Verificando permissões de administrador...');
+                
+                const { data: userData, error: userError } = await supabase
+                    .from('clientes')
+                    .select('is_admin, nome_completo')
+                    .eq('user_id', data.user.id)
+                    .single();
+                
+                if (userError) {
+                    console.error(' Erro ao verificar permissões:', userError);
+                    // Remove o overlay de loading
+                    document.getElementById('loading-overlay').classList.remove('active');
+                    errorMessage.textContent = 'Erro ao verificar permissões. Tente novamente.';
+                    errorMessage.classList.remove('hidden');
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Entrar';
+                    await supabase.auth.signOut();
+                    return;
+                }
+                
+                // Verificar se é administrador
+                if (!userData || userData.is_admin !== true) {
+                    console.warn(' Acesso negado: Usuário não é administrador');
+                    // Remove o overlay de loading
+                    document.getElementById('loading-overlay').classList.remove('active');
+                    errorMessage.textContent = ' Acesso negado. Apenas administradores podem acessar o painel.';
+                    errorMessage.classList.remove('hidden');
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Entrar';
+                    // Fazer logout do usuário
+                    await supabase.auth.signOut();
+                    return;
+                }
+                
+                console.log(' Acesso autorizado para:', userData.nome_completo);
+                
+                // Se "Lembrar-me" estiver marcado, salva o e-mail. Caso contrário, remove.
+                if (rememberMe) {
+                    localStorage.setItem('savedEmail', email);
+                } else {
+                    localStorage.removeItem('savedEmail');
+                }
+                // Sucesso, redireciona para o painel
+                window.location.href = 'paineladmin.html';
+            }
+        });
+
+    </script>
+    <style>
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
+    </style>
+</body>
+</html>

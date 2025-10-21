@@ -1,0 +1,95 @@
+# ====================================================================
+# NETLIFY REDIRECTS - PIZZARIA
+# ====================================================================
+# 
+# Este arquivo configura redirects e rewrites para o Netlify.
+# Sintaxe: from to [status] [options]
+# 
+# Documentação: https://docs.netlify.com/routing/redirects/
+# ====================================================================
+
+# ====================================================================
+# REDIRECT PARA HTTPS (FORÇAR)
+# ====================================================================
+http://pizzaria.netlify.app/*  https://pizzaria.netlify.app/:splat  301!
+
+# ====================================================================
+# SPA ROUTING - FALLBACK PARA INDEX.HTML
+# ====================================================================
+# Todas as rotas que não correspondem a arquivos existentes
+# são redirecionadas para index.html (para SPA routing)
+/*    /index.html   200
+
+# ====================================================================
+# REDIRECTS PERSONALIZADOS (EXEMPLOS)
+# ====================================================================
+
+# Redirect de página antiga para nova
+# /cardapio-antigo  /index.html  301
+
+# Redirect de domínio antigo
+# https://old-domain.com/*  https://new-domain.com/:splat  301!
+
+# Redirect com query parameters
+# /busca  /index.html?q=:query  200
+
+# ====================================================================
+# PROXY PARA APIs EXTERNAS (OPCIONAL)
+# ====================================================================
+# Útil para evitar CORS issues
+
+# Proxy para Supabase (se necessário)
+# /api/supabase/*  https://seu-projeto.supabase.co/:splat  200
+
+# Proxy para Google Sheets API (NÃO RECOMENDADO - use Supabase Edge Functions)
+# /api/sheets/*  https://sheets.googleapis.com/:splat  200
+
+# ====================================================================
+# REDIRECTS CONDICIONAIS (EXEMPLOS AVANÇADOS)
+# ====================================================================
+
+# Redirect baseado em país (requer Netlify Pro)
+# /  /pt-br  302  Country=br
+# /  /en-us  302  Country=us
+
+# Redirect baseado em idioma do navegador
+# /  /pt-br  302  Language=pt
+# /  /en-us  302  Language=en
+
+# Redirect baseado em cookie
+# /  /version-a  200  Cookie=version=a
+# /  /version-b  200  Cookie=version=b
+
+# ====================================================================
+# REDIRECTS PARA PÁGINAS DE ERRO PERSONALIZADAS
+# ====================================================================
+
+# Página 404 personalizada
+# /404  /404.html  404
+
+# Página 500 personalizada
+# /500  /500.html  500
+
+# ====================================================================
+# NOTAS IMPORTANTES
+# ====================================================================
+# 
+# 📝 ORDEM IMPORTA:
+# - Redirects são processados de cima para baixo
+# - O primeiro match é executado
+# - Use ! para forçar redirect mesmo se arquivo existir
+# 
+# 🎯 STATUS CODES:
+# - 200: Rewrite (URL não muda)
+# - 301: Redirect permanente (SEO)
+# - 302: Redirect temporário
+# - 404: Not Found
+# 
+# 🚀 PERFORMANCE:
+# - Redirects são processados no edge (CDN)
+# - Latência ultra-baixa
+# - Cache automático
+# 
+# 📚 DOCUMENTAÇÃO:
+# https://docs.netlify.com/routing/redirects/
+# ====================================================================

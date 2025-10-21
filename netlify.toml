@@ -1,0 +1,175 @@
+# ====================================================================
+# CONFIGURAÇÃO DO NETLIFY - PIZZARIA
+# ====================================================================
+
+[build]
+  # Diretório de publicação (raiz do projeto, pois é um site estático)
+  publish = "."
+  
+  # Comando de build (não necessário para site estático HTML puro)
+  command = ""
+
+# ====================================================================
+# CONFIGURAÇÃO DE HEADERS HTTP
+# ====================================================================
+[[headers]]
+  # Aplicar para todas as páginas
+  for = "/*"
+  [headers.values]
+    # Segurança
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache para assets estáticos
+    Cache-Control = "public, max-age=3600"
+
+# Cache mais agressivo para arquivos estáticos
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ====================================================================
+# CONFIGURAÇÃO DE REDIRECTS E REWRITES
+# ====================================================================
+
+# Redirect para HTTPS
+[[redirects]]
+  from = "http://pizzaria.netlify.app/*"
+  to = "https://pizzaria.netlify.app/:splat"
+  status = 301
+  force = true
+
+# SPA fallback - redireciona todas as rotas para index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ====================================================================
+# CONFIGURAÇÃO DE VARIÁVEIS DE AMBIENTE
+# ====================================================================
+# IMPORTANTE: Configure as variáveis de ambiente no painel do Netlify:
+# Site settings > Environment variables
+# 
+# Variáveis necessárias:
+# - SUPABASE_URL
+# - SUPABASE_ANON_KEY
+# - GOOGLE_API_KEY (se usado no front-end)
+# 
+# NÃO adicione secrets aqui neste arquivo!
+
+# ====================================================================
+# CONFIGURAÇÃO DE PLUGINS (OPCIONAL)
+# ====================================================================
+
+# Plugin para otimização de imagens
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"
+
+# ====================================================================
+# CONFIGURAÇÃO DE CONTEXTOS (AMBIENTES)
+# ====================================================================
+
+# Produção
+[context.production]
+  command = ""
+  publish = "."
+  
+  [context.production.environment]
+    NODE_ENV = "production"
+
+# Deploy previews (Pull Requests)
+[context.deploy-preview]
+  command = ""
+  publish = "."
+
+# Branch deploys
+[context.branch-deploy]
+  command = ""
+  publish = "."
+
+# ====================================================================
+# CONFIGURAÇÃO DE FUNÇÕES NETLIFY (OPCIONAL)
+# ====================================================================
+# Se você quiser usar Netlify Functions em vez de Supabase Edge Functions
+
+# [functions]
+#   directory = "netlify/functions"
+#   node_bundler = "esbuild"
+
+# ====================================================================
+# CONFIGURAÇÃO DE FORMS (OPCIONAL)
+# ====================================================================
+# Para usar Netlify Forms para contato/feedback
+
+# [build.processing]
+#   skip_processing = false
+
+# [build.processing.css]
+#   bundle = true
+#   minify = true
+
+# [build.processing.js]
+#   bundle = true
+#   minify = true
+
+# [build.processing.html]
+#   pretty_urls = true
+
+# ====================================================================
+# CONFIGURAÇÃO DE SPLIT TESTING (OPCIONAL)
+# ====================================================================
+# Para testes A/B
+
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
+#   force = false
+#   conditions = {Cookie = ["version=a"]}
+
+# ====================================================================
+# NOTAS IMPORTANTES
+# ====================================================================
+# 
+# 📝 DEPLOY:
+# 1. Conecte seu repositório GitHub ao Netlify
+# 2. Configure as variáveis de ambiente no painel
+# 3. O deploy será automático a cada push
+# 
+# 🔐 SEGURANÇA:
+# - Nunca commite credenciais neste arquivo
+# - Use variáveis de ambiente do Netlify
+# - Configure CORS no Supabase para seu domínio
+# 
+# 🚀 PERFORMANCE:
+# - Cache configurado automaticamente
+# - CDN global do Netlify
+# - HTTPS automático
+# 
+# 📚 DOCUMENTAÇÃO:
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+# ====================================================================

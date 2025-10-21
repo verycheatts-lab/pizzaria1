@@ -1,0 +1,34 @@
+{
+  "name": "pizzaria-cardapio-digital",
+  "version": "1.0.0",
+  "description": "Sistema completo de cardápio digital para pizzarias",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "deploy": "netlify deploy --prod",
+    "deploy:preview": "netlify deploy",
+    "build": "echo 'No build step required for static site'",
+    "test": "echo 'No tests configured yet'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/pizzaria.git"
+  },
+  "keywords": [
+    "pizzaria",
+    "cardapio",
+    "digital",
+    "pwa",
+    "supabase",
+    "netlify",
+    "google-sheets"
+  ],
+  "author": "Seu Nome",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
